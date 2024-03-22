@@ -152,29 +152,51 @@
           <div id="js-content" class="content-ll">
             
   
-    <article id="post-我的第一篇博客文章" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+    <article id="post-神之天平天平搭配" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2024/03/19/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/">我的第一篇博客文章</a>
+      <a class="article-title" href="/2024/03/22/%E7%A5%9E%E4%B9%8B%E5%A4%A9%E5%B9%B3%E5%A4%A9%E5%B9%B3%E6%90%AD%E9%85%8D/">神之天平天平搭配</a>
     </h1>
   
 
         
-        <a href="/2024/03/19/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/" class="archive-article-date">
-  	<time datetime="2024-03-19T11:16:35.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2024-03-19</time>
+        <a href="/2024/03/22/%E7%A5%9E%E4%B9%8B%E5%A4%A9%E5%B9%B3%E5%A4%A9%E5%B9%B3%E6%90%AD%E9%85%8D/" class="archive-article-date">
+  	<time datetime="2024-03-22T05:29:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2024-03-22</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="第一章"><a href="#第一章" class="headerlink" title="第一章"></a>第一章</h2><p>内容</p>
-<h2 id="第二章"><a href="#第二章" class="headerlink" title="第二章"></a>第二章</h2><p>感谢cxy对此博客的大力支持</p>
-<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2>
+        <p>做一个《神之天平》里面的天平搭配算法</p>
+<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>基本上是一个物品选取问题，给定天平托盘数量$T_1$和$T_2$（$T_1&#x3D;&#x3D;T_2 || T_1 &#x3D;&#x3D; T_2+1, T_1 &lt;&#x3D;5 &amp;&amp; T_2&gt;&#x3D;1$​），每个托盘上可以放置0个或1个物品。</p>
+<p>每个物品有若干条属性，如“精力上限”“使用速度”“体力恢复量”等。每种属性还有四个等级，等级越高属性提升量越大。把物品放置在天平托盘上就可以获得这些属性，但是相同等级的相同属性词条会抵消，比如两个物品都有“精力上限（3）”这一词条，如果把这两个物品都放在托盘上，则该词条会失效。</p>
+<p>同时，每个物品还有“重量”这一属性，如果天平两端物品的总重量不同，则获得的属性值会有衰减。</p>
+<p>算法要求是输入天平托盘数量$T_1$和$T_2$、物品列表（包括名称、重量和各个能力属性）以及指定的能力属性，输出在天平上放置什么物品的一个解。</p>
+<p>先做一个简单的版本，简化三个要求：</p>
+<p>①$T_1&#x3D;&#x3D;T_2&#x3D;&#x3D;5$。②指定的能力分为重要、次要、不需要三类，分别有各自的权重。③严格要求天平两端重量相等。</p>
+<p>除非算法里利用了$T_1&#x3D;&#x3D;T_2$​这一条件，不然应该是很容易拓展到完整的问题的。复杂的版本包括不同天平托盘数量、物品列表筛选（可能有些物品还没收集到）这些功能。</p>
+<h2 id="算法实现"><a href="#算法实现" class="headerlink" title="算法实现"></a>算法实现</h2><p>假设条件：$T_1&#x3D;&#x3D;T_2&#x3D;&#x3D;5$，物品列表有$N&#x3D;&#x3D;100$个物品，物品属性有16种。</p>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p>初步设想的数据结构：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="type">long</span> ratio;			<span class="comment">//各个属性的权重</span></span><br><span class="line"><span class="comment">/*物品*/</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ITEM</span> &#123;</span><br><span class="line">    string name;			<span class="comment">//名称</span></span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> attributes;	<span class="comment">//属性，可能要拓展成vector&lt;int&gt;</span></span><br><span class="line">    <span class="type">int</span> weight;				<span class="comment">//重量</span></span><br><span class="line">&#125;item_list[NUMBER_OF_ITEMS];</span><br><span class="line"><span class="comment">/*天平搭配解*/</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">SOLUTION</span>&#123;</span><br><span class="line">	vector&lt;<span class="type">int</span>&gt; left, right;	<span class="comment">//左右天平上放置的物品</span></span><br><span class="line">    <span class="type">long</span> <span class="type">long</span> attributes;		<span class="comment">//属性</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="为什么用整型存储属性？"><a href="#为什么用整型存储属性？" class="headerlink" title="为什么用整型存储属性？"></a>为什么用整型存储属性？</h4><p>因为相同等级的相同属性会相互抵消，因此用按位异或运算来计算属性会比较方便。整型中的一个bit表示某个属性的某一个等级。在有16种属性，每种属性有4个等级的情况下，刚好可以用一个long long整型存储所有属性的所有等级。</p>
+<p>使用“异或”进行运算有个问题，三个1异或结果为1，而游戏里多于两个相同的属性异或后应该也是0（还没试过，后面实践下），可能要对此进行调整。</p>
+<h3 id="采取什么算法？"><a href="#采取什么算法？" class="headerlink" title="采取什么算法？"></a>采取什么算法？</h3><h4 id="枚举"><a href="#枚举" class="headerlink" title="枚举"></a>枚举</h4><p>枚举天平的每种物品搭配，再计算各个搭配下的属性得分。优点容易实现，而且可以得出最优的前k个解（而不是仅仅得出最优解）。</p>
+<p>时间复杂度<br>$$<br>T &#x3D; O(C_{N}^{T_1}\times C_{N}^{T_2})\<br>\rightarrow (C_{100}^{5})^2\approx 5.67\times 10^{15}<br>$$<br>这其中其实绝大部分解中天平总重量都是没有配平的，可以直接忽略，但还是要消耗计算资源。</p>
+<h4 id="搜索"><a href="#搜索" class="headerlink" title="搜索"></a>搜索</h4><p>简单DFS搜索的话搜索树规模$N^{T_1+T_2}$级别，无论如何都比枚举算法的复杂度大，肯定不行。</p>
+<p>如果使用带决策的搜索树，该怎么确保能找到最优解？决策的依据可以使用“总重量”这一属性，还没想出具体怎么做。</p>
+<h4 id="动态规划"><a href="#动态规划" class="headerlink" title="动态规划"></a>动态规划</h4><p>初步想法是对重量进行动态规划。对天平数量进行动态规划应该是不可行的，因为5对托盘的最优解大部分情况下都不能由2对配平托盘加上3对配平托盘组合完成（其他的，1对+4对的情况也是一样）。<br>$$<br>dp[w] &#x3D; best{dp[w-i] \or dp[i]}<br>$$<br>不过还有些没有解决的问题：</p>
+<p>①怎么考虑重复物品的问题？或许可以直接不考虑，因为重复物品的属性完全抵消，其得分肯定不高。</p>
+<p>②怎么考虑天平数量问题？</p>
+<p>③高重量最优解同样不一定能由两个低重量最优解组合完成。</p>
+<h4 id="贪心"><a href="#贪心" class="headerlink" title="贪心"></a>贪心</h4><p>还没什么具体的思路，而且贪心算法一般无法保证找到最优解。</p>
+<h4 id="未完待续"><a href="#未完待续" class="headerlink" title="未完待续"></a>未完待续</h4><p>目前看比较有希望的就是带决策的搜索树，不过这个比较难想，实在不行就枚举吧。</p>
+
       
 
       
@@ -182,11 +204,211 @@
     <div class="article-info article-info-index">
       
       
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color5">game</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
       
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2024/03/19/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/">展开全文 >></a>
+          <a class="article-more-a" href="/2024/03/22/%E7%A5%9E%E4%B9%8B%E5%A4%A9%E5%B9%B3%E5%A4%A9%E5%B9%B3%E6%90%AD%E9%85%8D/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-模拟退火算法" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2024/03/20/%E6%A8%A1%E6%8B%9F%E9%80%80%E7%81%AB%E7%AE%97%E6%B3%95/">模拟退火算法</a>
+    </h1>
+  
+
+        
+        <a href="/2024/03/20/%E6%A8%A1%E6%8B%9F%E9%80%80%E7%81%AB%E7%AE%97%E6%B3%95/" class="archive-article-date">
+  	<time datetime="2024-03-20T08:54:39.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2024-03-20</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>帮师兄做一个图重分区的模拟退火算法版本。</p>
+<h2 id="模拟退火算法"><a href="#模拟退火算法" class="headerlink" title="模拟退火算法"></a>模拟退火算法</h2><p>模拟退火（Simulated Annealing，SA）算法是一种基于概率的全局优化算法，用于解决组合优化问题，特别是在寻找复杂函数的__全局最优解__时非常有效。它模拟了固体退火的过程，通过以一定概率接受差于当前解的新解，来避免陷入__局部最优解__。</p>
+<p>模拟退火算法伪代码：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1、初始化当前解 x和初始温度 T</span><br><span class="line">2、设置迭代次数或其他停止条件</span><br><span class="line">3、循环执行以下步骤：</span><br><span class="line"><span class="code">	a、生成一个新解 x_new</span></span><br><span class="line"><span class="code">	b、计算新解的成本 cost_new</span></span><br><span class="line"><span class="code">	c、如果 cost_new 优于当前解的成本 cost 或以一定概率接受cost_new：</span></span><br><span class="line"><span class="code">		- 将 x_new 设为当前解</span></span><br><span class="line"><span class="code">		- 更新当前温度</span></span><br><span class="line"><span class="code">	d、降低温度 T</span></span><br><span class="line"><span class="code">4、返回当前解作为问题的近似最优解</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="基础代码"><a href="#基础代码" class="headerlink" title="基础代码"></a>基础代码</h2><p>基础代码是2000年的一份论文中的Btree代码，论文中用到了模拟退火算法。</p>
+<p>编译代码时遇到了一些问题，大致是这几类：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">1、c++函数定义中对参数值进行赋值</span><br><span class="line"><span class="code">	好像是不能这么做的，声明里可以。代码里挺多这种error的，估计作者所用的编译器不识别这个error</span></span><br><span class="line"><span class="code">	void B_Tree::insert_node2(Node &amp;parent,Node &amp;node,</span></span><br><span class="line"><span class="code">        DIR edge=LEFT,DIR push=LEFT,bool fold=false)&#123;</span></span><br><span class="line"><span class="code">		......</span></span><br><span class="line"><span class="code">	&#125;</span></span><br><span class="line"><span class="code">	把&quot;fold=false&quot;之间改成&quot;fold&quot;</span></span><br><span class="line"><span class="code">2、缺少头文件</span></span><br><span class="line"><span class="code">	&lt;iostream&gt;（以及using namespace std声明）	主要是cout语句编译不过</span></span><br><span class="line"><span class="code">	&lt;climits&gt;	主要是assert语句编译不过</span></span><br><span class="line"><span class="code">3、其他</span></span><br><span class="line"><span class="code">	ifstream类的对象fs用 fs==NULL进行判空</span></span><br><span class="line"><span class="code">	直接改成!fs.is_open()</span></span><br><span class="line"><span class="code">	不知道作者原先是怎么编译通过的......</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="需要修改的函数"><a href="#需要修改的函数" class="headerlink" title="需要修改的函数"></a>需要修改的函数</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">FPlan::read</span><span class="params">(<span class="type">char</span> *file)</span></span>&#123;&#125;		<span class="comment">//读取文件</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">B_Tree::init</span><span class="params">()</span></span>&#123;&#125;				<span class="comment">//初始化二叉树</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">double</span> <span class="title">SA_Floorplan</span><span class="params">(FPlan &amp;fp, <span class="type">int</span> k, <span class="type">int</span> local, <span class="type">float</span> term_T)</span>	<span class="comment">//模拟退火算法执行</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">FPlan::packing</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">FPlan::getCost</span><span class="params">()</span></span>&#123;&#125;				<span class="comment">//计算当前解的cost</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">B_Tree::perturb</span><span class="params">()</span></span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">paper</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2024/03/20/%E6%A8%A1%E6%8B%9F%E9%80%80%E7%81%AB%E7%AE%97%E6%B3%95/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-LeafLet Vue json数据库 地图跳转" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2024/03/20/LeafLet%20Vue%20json%E6%95%B0%E6%8D%AE%E5%BA%93%20%E5%9C%B0%E5%9B%BE%E8%B7%B3%E8%BD%AC/">LeafLet Vue json数据库 地图跳转</a>
+    </h1>
+  
+
+        
+        <a href="/2024/03/20/LeafLet%20Vue%20json%E6%95%B0%E6%8D%AE%E5%BA%93%20%E5%9C%B0%E5%9B%BE%E8%B7%B3%E8%BD%AC/" class="archive-article-date">
+  	<time datetime="2024-03-20T06:17:35.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2024-03-20</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>帮小学同学做一个Web端的地图跳转功能。</p>
+<p><img src="D:\Blog\public\img\Snipaste_2024-03-20_13-40-26.png"></p>
+<p>文件目录</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">src</span><br><span class="line"> --views</span><br><span class="line"> 	---MapView.vue</span><br><span class="line"> 	---SchoolView.vue</span><br><span class="line"> 	---......</span><br><span class="line"> --......</span><br></pre></td></tr></table></figure>
+
+<p>MapView.vue文件中初始化并定义了地图map</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">    <span class="title function_">mounted</span>(<span class="params"></span>) &#123;    </span><br><span class="line">        <span class="keyword">let</span> defaultIcon = L.<span class="title function_">icon</span>(&#123;</span><br><span class="line">            <span class="attr">iconUrl</span>: icon,</span><br><span class="line">            <span class="attr">shadowUrl</span>: iconShadow</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        L.<span class="property">Marker</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">options</span>.<span class="property">icon</span> = defaultIcon;</span><br><span class="line">        <span class="keyword">const</span> redIconUrl = <span class="built_in">require</span>(<span class="string">&#x27;../assets/red-icon.png&#x27;</span>)</span><br><span class="line">        <span class="keyword">const</span> map = L.<span class="title function_">map</span>(<span class="string">&#x27;map&#x27;</span>,[&#123;<span class="attr">zoomControl</span>: <span class="literal">true</span>&#125;,&#123;<span class="attr">datasourcesControl</span>: <span class="literal">true</span>&#125;]).<span class="title function_">setView</span>([<span class="number">22.803860</span>, <span class="number">113.428606</span>], <span class="number">12</span>);</span><br><span class="line">    	......</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>SchoolView.vue文件中定义了查询列表</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;div class=&quot;search-container&quot;&gt;</span><br><span class="line">    &lt;input type=&quot;text&quot; v-model=&quot;searchText&quot; placeholder=&quot;请输入幼儿园名称&quot;&gt;</span><br><span class="line">    &lt;button @click=&quot;search&quot;&gt;搜索&lt;/button&gt;</span><br><span class="line">    &lt;ul v-if=&quot;showResults&quot; class=&quot;search-results&quot;&gt;</span><br><span class="line">      &lt;li v-for=&quot;(item, index) in filteredItems&quot; :key=&quot;index&quot; @click=&quot;handleItemClick(index)&quot;&gt;&#123;&#123; item &#125;&#125;&lt;/li&gt;</span><br><span class="line">    &lt;/ul&gt;</span><br><span class="line">    &lt;p v-if=&quot;showNoResults&quot; class=&quot;no-results-message&quot;&gt;未找到匹配结果&lt;/p&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/template&gt;</span><br></pre></td></tr></table></figure>
+
+<p>第5行，点击“搜索”按钮后会触发search()方法，search()方法中把搜索匹配结果保存在matchingIndexes数组和showResults布尔变量中。第6行，将filteredItems()方法的返回值显示在Web上，并且给显示结果的每个项目附加上点击时触发handleItemClick(index)。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">search</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">matchingIndexes</span> = [];</span><br><span class="line">  <span class="keyword">const</span> searchTextLower = <span class="variable language_">this</span>.<span class="property">searchText</span>.<span class="title function_">toLowerCase</span>();</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">items</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">item, index</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (item.<span class="title function_">toLowerCase</span>().<span class="title function_">includes</span>(searchTextLower)) &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">matchingIndexes</span>.<span class="title function_">push</span>(index);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="variable language_">this</span>.<span class="property">showResults</span> = <span class="variable language_">this</span>.<span class="property">matchingIndexes</span>.<span class="property">length</span> &gt; <span class="number">0</span>;</span><br><span class="line">  <span class="comment">//console.log(&quot;搜索测试&quot;);</span></span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">computed</span>: &#123;</span><br><span class="line">    <span class="title function_">filteredItems</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">matchingIndexes</span>.<span class="title function_">map</span>(<span class="function"><span class="params">index</span> =&gt;</span> <span class="variable language_">this</span>.<span class="property">items</span>[index]);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">handleItemClick</span>(<span class="params">index</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> selectedSchool = <span class="variable language_">this</span>.<span class="property">filteredItems</span>[index];</span><br><span class="line">  <span class="comment">//console.log(&quot;跳转&quot; + selectedSchool);</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> mmap = <span class="variable language_">this</span>.<span class="property">map</span></span><br><span class="line">  axios.<span class="title function_">request</span>(&#123;</span><br><span class="line">    <span class="attr">method</span>: <span class="string">&#x27;get&#x27;</span>,</span><br><span class="line">    <span class="attr">url</span>: <span class="string">&#x27;http://localhost:3000/leaf&#x27;</span>,</span><br><span class="line">  &#125;).<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params">res</span>) &#123;</span><br><span class="line">    res.<span class="property">data</span>.<span class="title function_">forEach</span>(<span class="function"><span class="params">element</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span>(element.<span class="property">name</span> === selectedSchool) &#123;</span><br><span class="line">        <span class="comment">//console.log(&quot;跳转&quot; + element.date)</span></span><br><span class="line">        <span class="keyword">const</span> [longitude, latitude] = element.<span class="property">date</span>.<span class="title function_">split</span>(<span class="string">&quot;,&quot;</span>).<span class="title function_">map</span>(<span class="built_in">parseFloat</span>)</span><br><span class="line">        mmap.<span class="title function_">setView</span>([latitude, longitude], <span class="number">20</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>handleItemClick(index)方法执行地图跳转功能。第6-9行是获取json数据库，数据库里存储的是各个幼儿园的信息，这里用到数据库的name关键字和date（不知道为什么他用date存储纬度经度地址信息）关键字。第13行把字符串形式的地址信息转成二元组的形式。第14行根据[纬度，经度]二元组和缩放比例20进行地图跳转。</p>
+<p>实现时遇到的主要问题是怎么在SchoolView.vue文件里，调用MapView.vue文件初始化并定义的地图变量map。因为搜索信息是在SchoolView.vue页面的，而地图信息是在MapView.vue页面的。</p>
+<p>MapView.vue里面定义map时是在mounted()方法里定义的，我找不到把mounted()方法里定义的变量导出并在其他文件里调用的方法。</p>
+<p>中间也尝试了在mounted()方法外初始化map的做法，但网页无法正常运行。</p>
+<p>最后使用mitt插件进行信息传递。MapView.vue文件中初始化map后，通过mitt插件传递一个”map-ready”的信息，并且把map变量附加在这条信息上。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">mounted</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="keyword">const</span> map = L.<span class="title function_">map</span>(<span class="string">&#x27;map&#x27;</span>,[&#123;<span class="attr">zoomControl</span>: <span class="literal">true</span>&#125;,&#123;<span class="attr">datasourcesControl</span>: 	<span class="literal">true</span>&#125;]).<span class="title function_">setView</span>([<span class="number">22.803860</span>, <span class="number">113.428606</span>], <span class="number">12</span>);</span><br><span class="line"></span><br><span class="line">	eventBus.<span class="title function_">emit</span>(<span class="string">&#x27;map-ready&#x27;</span>, map) </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>SchoolView.vue文件中监视”map-ready”信息，接收到该信息和其附加的map变量后，将map变量保存在页面内的数据里面。然后就可以在SchoolView.vue文件里面进行地图跳转了。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">mounted</span>(<span class="params"></span>)&#123;</span><br><span class="line">    eventBus.<span class="title function_">on</span>(<span class="string">&#x27;map-ready&#x27;</span>, <span class="function"><span class="params">map</span>=&gt;</span>&#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">map</span> = map;</span><br><span class="line">      <span class="comment">//console.log(this.map);</span></span><br><span class="line">    &#125;)</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">前端</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2024/03/20/LeafLet%20Vue%20json%E6%95%B0%E6%8D%AE%E5%BA%93%20%E5%9C%B0%E5%9B%BE%E8%B7%B3%E8%BD%AC/">展开全文 >></a>
         </p>
       
 
@@ -382,6 +604,18 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
             <input type="checkbox" q-on="click:toggleTag(e)" q-attr="checked:showTags">
           </label>
           <ul class="article-tag-list" q-show="showTags">
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">game</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">前端</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">paper</a>
+              </li>
             
             <div class="clearfix"></div>
           </ul>
